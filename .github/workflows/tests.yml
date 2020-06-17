@@ -1,0 +1,35 @@
+name: Django CI
+
+on:
+  push:
+    branches: [latest]
+  pull_request:
+    branches: [latest]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install Pipenv
+        uses: dschep/install-pipenv-action@v1
+      - name: Install Dependencies
+        run: |
+          pipenv install
+      - name: Run Tests
+        run: |
+          pipenv run coverage run --source='.' manage.py test
+          pipenv run coverage xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
